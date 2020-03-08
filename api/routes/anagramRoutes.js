@@ -22,7 +22,7 @@ module.exports = function(app) {
     app.route('/words/:word.json/anagrams')
         .delete(wordList.delete_word_and_anagrams);
 
-    app.route('/anagrams/:word.json/:limit?')
+    app.route('/anagrams/:word.json/:limit?/:proper?')
         .get(wordList.get_anagrams);
      
 }

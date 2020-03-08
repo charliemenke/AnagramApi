@@ -1,43 +1,100 @@
-Ibotta Dev Project
-=========
+# Anagram API
 
+This API reads from english dictionary and supports multiple endpoints that returns anagrams
 
-# The Project
+## Installation
 
----
+```bash
+git clone https://github.com/charliemenke/AnagramApi.git
+```
 
-The project is to build an API that allows fast searches for [anagrams](https://en.wikipedia.org/wiki/Anagram). `dictionary.txt` is a text file containing every word in the English dictionary. Ingesting the file doesn’t need to be fast, and you can store as much data in memory as you like.
+Using the npm package manager
 
-The API you design should respond on the following endpoints as specified.
+```bash
+cd AnagramApi
+npm install
+```
 
-- `POST /words.json`: Takes a JSON array of English-language words and adds them to the corpus (data store).
-- `GET /anagrams/:word.json`:
-  - Returns a JSON array of English-language words that are anagrams of the word passed in the URL.
-  - This endpoint should support an optional query param that indicates the maximum number of results to return.
-- `DELETE /words/:word.json`: Deletes a single word from the data store.
-- `DELETE /words.json`: Deletes all contents of the data store.
+## Usage
 
+Before running the API, you should seed the database from the dictionary.txt file
 
-**Optional**
-- Endpoint that returns a count of words in the corpus and min/max/median/average word length 
-- Respect a query param for whether or not to include proper nouns in the list of anagrams 
-- Endpoint that identifies words with the most anagrams
-- Endpoint that takes a set of words and returns whether or not they are all anagrams of each other 
-- Endpoint to return all anagram groups of size >= *x*
-- Endpoint to delete a word *and all of its anagrams 
+```bash
+npm run seed
+```
+Now you are ready to start the server
 
-Clients will interact with the API over HTTP, and all data sent and received is expected to be in JSON format
+```bash
+npm start
+```
 
-Example (assuming the API is being served on localhost port 3000):
+## Endpoints
 
-```{bash}
-# Adding words to the corpus
-$ curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' http://localhost:3000/words.json
-HTTP/1.1 201 Created
-...
+There are multiple endpoints supported. Listed below are their paths and relative parameters
 
-# Fetching anagrams
-$ curl -i http://localhost:3000/anagrams/read.json
+### Add Words To Database
+Add words to data corpus ```POST /words.json```
+Input
+| Name        | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| words      | json object | A json object containing words to add to corpus |
+Example Request
+```curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' -H Content-Type:application/json http://localhost:3000/words.json```
+Response ```HTTP/1.1 201 Created [*words added]```
+
+### Check If Words Are Anagrams
+Check if words posted in request are anagrams of each other ```POST /words.json/anagrams```
+Input
+| Name        | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| words      | json object | A json object containing words to check |
+Example Request
+```curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' -H Content-Type:application/json http://localhost:3000/words.json/anagrams```
+
+Response ```HTTP/1.1 200 {areAnagrams: true|false}```
+
+### Delete Word
+Delete single word from corpus ```DELETE /words/word.json```
+
+Example Request
+```curl -i -X DELETE http://localhost:3000/words/read.json```
+
+Response ```HTTP/1.1 204 No Content```
+
+### Delete Word and Anagrams
+Delete single word and its anagrams from corpus ```DELETE /words/word.json/anagrams```
+
+Example Request
+```curl -i -X DELETE http://localhost:3000/words/read.json/anagrams```
+
+Response ```HTTP/1.1 204 No Content```
+
+### Delete Words
+Delete all word from corpus ```DELETE /words.json```
+
+Example Request
+```curl -i -X DELETE http://localhost:3000/words.json```
+
+Response ```HTTP/1.1 204 No Content```
+
+### Get Anagrams
+Get all anagrams of word posted ```POST /words.json/anagrams```
+
+Input
+| Name        | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| word      | word string | word to get anagrams of |
+Parameters
+| Name        | Type           | Description  |
+| ------------- |:-------------:| -----:|
+| limit      | integer | limit number of anagrams to return |
+| proper      | boolean | default:true => include proper nouns\ false => remove proper nouns from list |
+
+Example Request
+```curl -i http://localhost:3000/anagrams/read.json```
+
+Response 
+```
 HTTP/1.1 200 OK
 ...
 {
@@ -46,79 +103,38 @@ HTTP/1.1 200 OK
     "dare"
   ]
 }
+```
 
-# Specifying maximum number of anagrams
-$ curl -i http://localhost:3000/anagrams/read.json?limit=1
+### Get Corpus Stats
+Returns min, max, median, avg, and count of words in corpus ```GET /words.json```
+
+Example Request
+```curl -i -X GET http://localhost:3000/words.json```
+
+Response
+```
 HTTP/1.1 200 OK
 ...
 {
-  anagrams: [
-    "dare"
-  ]
+  wordCount: 10,
+  minLength: 1,
+  maxLength: 22,
+  medianLength: 13,
+  averageLength: 9.2
 }
-
-# Delete single word
-$ curl -i -X DELETE http://localhost:3000/words/read.json
-HTTP/1.1 204 No Content
-...
-
-# Delete all words
-$ curl -i -X DELETE http://localhost:3000/words.json
-HTTP/1.1 204 No Content
-...
 ```
 
-Note that a word is not considered to be its own anagram.
+## Testing
 
-
-## Tests
-
-We have provided a suite of tests to help as you develop the API. To run the tests you must have Ruby installed ([docs](https://www.ruby-lang.org/en/documentation/installation/)):
-
-```{bash}
-ruby anagram_test.rb
+Included in this API is a folder for running basic tests on the API. To run said tests you must have ruby installed
+```bash
+ruby /test/anagram_test.rb
 ```
 
-Only the first test will be executed, all the others have been made pending using the `pend` method. Delete or comment out the next `pend` as you get each test passing.
+## API Design
 
-If you are running your server somewhere other than localhost port 3000, you can configure the test runner with configuration options described by
+This API was designed using Nodejs with Express and a Redis database.
 
-```{bash}
-ruby anagram_test.rb -h
-```
+Node and Express was chosen because I had experience designing simple APIs with it before so it allowed me to implement a working concept quickly.
 
-You are welcome to add additional test cases if that helps with your development process. The [benchmark-bigo](https://github.com/davy/benchmark-bigo) gem is helpful if you wish to do performance testing on your implementation.
-
-## API Client
-
-We have provided an API client in `anagram_client.rb`. This is used in the test suite, and can also be used in development.
-
-To run the client in the Ruby console, use `irb`:
-
-```{ruby}
-$ irb
-> require_relative 'anagram_client'
-> client = AnagramClient.new
-> client.post('/words.json', nil, { 'words' => ['read', 'dear', 'dare']})
-> client.get('/anagrams/read.json')
-```
-
-## Documentation
-
-Optionally, you can provide documentation that is useful to consumers and/or maintainers of the API.
-
-Suggestions for documentation topics include:
-
-- Features you think would be useful to add to the API
-- Implementation details (which data store you used, etc.)
-- Limits on the length of words that can be stored or limits on the number of results that will be returned
-- Any edge cases you find while working on the project
-- Design overview and trade-offs you considered
-
-
-# Deliverable
----
-
-Please provide the code for the assignment either in a private repository (GitHub or Bitbucket) or as a zip file. If you have a deliverable that is deployed on the web please provide a link, otherwise give us instructions for running it locally.
-
-
+Originally I was using MongoDB as a database for the same reasons above, but I switched to Redis even though not having any previous experience with the technology because of its very fast backend and especially for its support of sets which I utilized for anagram checking
