@@ -86,6 +86,7 @@ Input
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
 | word      | word string | word to get anagrams of |
+
 Parameters
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
