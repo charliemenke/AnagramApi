@@ -38,6 +38,7 @@ Input
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
 | words      | json object | A json object containing words to add to corpus |
+
 Example Request
 ```curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' -H Content-Type:application/json http://localhost:3000/words.json```
 Response ```HTTP/1.1 201 Created [*words added]```
@@ -48,6 +49,7 @@ Input
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
 | words      | json object | A json object containing words to check |
+
 Example Request
 ```curl -i -X POST -d '{ "words": ["read", "dear", "dare"] }' -H Content-Type:application/json http://localhost:3000/words.json/anagrams```
 
