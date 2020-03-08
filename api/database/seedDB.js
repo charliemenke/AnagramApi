@@ -44,6 +44,7 @@ rl.on('line', function(line) {
             });
         });
         console.log("Finished seeding DB");
+        process.exit();
     });
     
 });
