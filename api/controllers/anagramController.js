@@ -17,6 +17,10 @@ exports.add_words = function(req, res) {
     words.forEach(word => {
         let key = word.toLowerCase().split('').sort().join();
         redisClient0.sadd(key,word, function(err, reply) {
+            if(err) {
+                console.log(err);
+                res.status(400).send("Error adding word to DB");
+            }
             if(reply) {
                 console.log(word + " added to DB0");
                 anagram.updateDB1(word);

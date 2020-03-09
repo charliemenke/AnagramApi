@@ -80,7 +80,7 @@ Example Request
 Response ```HTTP/1.1 204 No Content```
 
 ### Get Anagrams
-Get all anagrams of word posted ```POST /words.json/anagrams```
+Get all anagrams of word posted ```POST /anagrams/:word.json```
 
 Input
 | Name        | Type           | Description  |
