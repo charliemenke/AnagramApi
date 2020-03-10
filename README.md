@@ -34,6 +34,7 @@ There are multiple endpoints supported. Listed below are their paths and relativ
 
 ### Add Words To Database
 Add words to data corpus ```POST /words.json```
+
 Input
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
@@ -45,6 +46,7 @@ Response ```HTTP/1.1 201 Created [*words added]```
 
 ### Check If Words Are Anagrams
 Check if words posted in request are anagrams of each other ```POST /words.json/anagrams```
+
 Input
 | Name        | Type           | Description  |
 | ------------- |:-------------:| -----:|
