@@ -18,8 +18,7 @@ exports.add_words = function(req, res) {
         let key = word.toLowerCase().split('').sort().join();
         redisClient0.sadd(key,word, function(err, reply) {
             if(err) {
-                console.log(err);
-                res.status(400).send("Error adding word to DB");
+                res.status(400).send(err);
             }
             if(reply) {
                 console.log(word + " added to DB0");
@@ -42,14 +41,23 @@ exports.list_all_words = function(req, res) {
     // Find all words in Words Collection
     let min = max = median = avg = count = 0;
     redisClient1.lrange("wordLength", 0, -1, function(err, set) {
+        if(err) {
+            res.status(400).send(err);
+        }
         set = set.sort(function(a, b){return a - b});
         min = set[0];
         median = set[Math.floor(set.length/2)];
         max = set.pop();
         
         redisClient1.get("count", function(err, value) {
+            if(err) {
+                res.status(400).send(err);
+            }
             count = value;
             redisClient1.get("wordsLength", function(err, value) {
+                if(err) {
+                    res.status(400).send(err);
+                }
                 avg = parseInt(value)/parseInt(count);
                 res.json({
                     wordCount: count,
@@ -66,15 +74,14 @@ exports.list_all_words = function(req, res) {
 
 /*
     DELETE /words.json controller
-    Simply removes all words existing in Words Collection
+    Simply removes all words existing in DB
 */
 exports.delete_words = function(req, res) {
     
     // Flush redis DB of all key:value pairs
     redisClient0.flushall(function(err, succeed) {
         if(err){
-            console.log(err);
-            res.status(400).send("Unable to flush DB");
+            res.status(400).send(err);
         } else {
             console.log("Flushed DBs");
         }
@@ -93,24 +100,22 @@ exports.delete_word = function(req, res) {
     let word = req.params.word;
     let key = word.toLowerCase().split('').sort().join();
 
-    redisClient0.exists(key, function(error, exists) {
+    redisClient0.exists(key, function(err, exists) {
         if(error) {
-            console.log(word + " does not exist in DB, cannot delete");
-            res.status(400).send("Unable to delete " + word + ", does not exist");
+            res.status(400).send(err);
         } else {
             redisClient0.srem(key, word, function(err, removed) {
                 if(err) {
-                    res.status(400).send("Failed removing " + word + ", from DB");
-                } else {
-                    if(removed) {
-                        anagram.updateDB1(word, false)
-                        console.log("Removed " + word + " from DB");
-                        res.status(204).json({"deleted": word});
-                    } else {
-                        console.log("word not in DB");
-                        res.status(400).send("Failed removing " + word + ", from DB");
-                    }
+                    res.status(400).send(err);
                 }
+                if(removed) {
+                    anagram.updateDB1(word, false)
+                    console.log("Removed " + word + " from DB");
+                    res.status(204).json({"deleted": word});
+                } else {
+                    console.log("word not in DB");
+                    res.status(204).send();
+                }             
             });
         }
     });
@@ -125,20 +130,27 @@ exports.delete_word_and_anagrams = function(req, res) {
 
     let word = req.params.word;
     let key = word.toLowerCase().split('').sort().join();
-    redisClient0.smembers(key, function(error, set) {
+    redisClient0.smembers(key, function(err, set) {
+        if(err) {
+            res.status(400).send(err);
+        }
         if(set.length) {
 
             set.forEach(word => {
                 anagram.updateDB1(word, false);
             });
 
-            redisClient0.del(key, function(error, reply) {
+            redisClient0.del(key, function(err, reply) {
+                if(err) {
+                    res.status(400).send(err);
+                }
                 console.log("Flushed " + word + " and its anagrams");
+                res.status(204).json();
             });
 
         }
     });
-    res.status(204).json();
+
 }
 
 /*
@@ -178,13 +190,11 @@ exports.get_anagrams = async function(req, res) {
     // First check if key exits: (false) => return empty array. (true) => return full anagram array
     redisClient0.exists(key, function(err, exists) {
         if(err) {
-            console.log("Failed querying DB");
             res.status(400).send("Failed querying DB");
         } else {
             if(exists) {
                 redisClient0.smembers(key, function(err, set) {
                     if(err) {
-                        console.log("Failed querying DB");
                         res.status(400).send("Failed querying DB");
                     } else {
                         set = set.filter(el => el !== word);
